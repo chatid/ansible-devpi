@@ -1,0 +1,42 @@
+- name: server | python | create user
+  user: >
+    comment="devpi service user"
+    name={{ devpi_user }}
+    createhome=no
+    home={{ devpi_server_dir }}
+    system=yes
+    shell=/bin/false
+
+- name: server | python | create secret file
+  copy: >
+    dest=/etc/devpi.secret content={{ devpi_server_secret }}
+    owner={{ devpi_user }} group={{ devpi_user }} mode=640
+
+- name: server | python | create dirs
+  file: >
+    path={{ item }} state=directory mode=755
+    owner={{ devpi_user }} group={{ devpi_user }}
+  with_items:
+    - "{{ devpi_server_dir }}"
+    - "{{ devpi_server_log_dir }}"
+
+- name: server | python | create virtualenv
+  pip: >
+    name={{ devpi_python_package }}
+    version={{ devpi_server_version }}
+    virtualenv={{ devpi_server_virtualenv }}
+
+- name: server | python | ensure permisssions
+  file: >
+    path={{ devpi_server_virtualenv }} mode=755 recurse=yes
+    owner={{ devpi_user }} group={{ devpi_user }}
+
+- name: server | python | link devpi-server program
+  file: path=/usr/local/bin/devpi-server src={{ devpi_server_bin }} state=link
+
+- name: server | python | render upstart config
+  template: src=upstart.conf dest=/etc/init/devpi-server.conf
+
+- name: server | python | enable devpi-server service
+  service: name=devpi-server enabled=yes state=started
+

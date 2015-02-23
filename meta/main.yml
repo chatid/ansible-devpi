@@ -1,0 +1,36 @@
+---
+galaxy_info:
+  author: Matt Wright <wright@chatid.com>
+  description: Installs and configures devpi <http://doc.devpi.net/latest/>
+  company: ChatID Inc.
+  license: MIT
+  platforms:
+    - name: Ubuntu
+      versions:
+        - trusty
+  categories:
+    - packaging
+    - python
+
+dependencies:
+  - role: Stouts.python
+    python_versions: [2.7]
+    python_install:
+      - httplib2
+    tags: [python]
+
+  - name: chatid.docker
+    src: git+git@github.com:chatid/ansible-docker.git
+    when: devpi_server|bool and devpi_server_install_method == 'docker'
+    tags: [docker]
+
+  - role: jdauphant.nginx
+    nginx_remove_sites: [default]
+    nginx_sites: {}
+    when: devpi_proxy|bool
+    tags: [nginx]
+
+  - name: chatid.consul-template
+    src: git+git@github.com:chatid/ansible-consul-template.git
+    when: devpi_proxy|bool and devpi_proxy_consul_aware|bool
+    tags: [consul, consul-template]

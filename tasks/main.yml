@@ -1,0 +1,25 @@
+---
+# tasks file for chatid.devpi
+- include: server_python.yml
+  when: devpi_server|bool and devpi_server_install_method == 'python'
+  tags: [install, server]
+
+- include: server_docker.yml
+  when: devpi_server|bool and devpi_server_install_method == 'docker'
+  tags: [install, server]
+
+- include: client.yml
+  when: devpi_server or devpi_client
+  tags: [install, client]
+
+- include: users.yml
+  when: devpi_server and not devpi_server_replica
+  tags: [configure, users]
+
+- include: indexes.yml
+  when: devpi_server and not devpi_server_replica
+  tags: [configure, indexes]
+
+- include: proxy.yml
+  when: devpi_server and devpi_proxy
+  tags: [install, proxy]

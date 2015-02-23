@@ -1,0 +1,12 @@
+---
+- name: client | create devpi client dir
+  file: path={{ devpi_client_dir }} state=directory
+  tags: [devpi, client]
+
+- name: client | install packages
+  pip: name={{ devpi_client_package }} version={{ devpi_client_version }} virtualenv={{ devpi_client_virtualenv }}
+  tags: [devpi, client]
+
+- name: client | link devpi program
+  file: path=/usr/local/bin/devpi src={{ devpi_client_bin }} state=link
+  tags: [devpi, client]

@@ -1,0 +1,30 @@
+---
+- name: indexes | set devpi client index
+  shell: >
+    {{ devpi_client_bin }} use http://0.0.0.0:{{ devpi_port }} --clientdir {{ devpi_client_dir }}
+  changed_when: False
+
+- name: indexes | get current root indexes
+  uri: url=http://0.0.0.0:{{ devpi_port }}/root return_content=yes
+  register: devpi_existing_root_indexes
+
+- name: indexes | create root indexes
+  command: >
+    {{ devpi_client_bin }} index -y -c {{ item.key }}
+    volatile={{ item.value.volatile }}
+    bases={{ item.value.bases | join(',') }}
+    pypi_whitelist='{{ item.value.pypi_whitelist | default('*') }}'
+    --clientdir {{ devpi_client_dir }}
+  when: item.key not in devpi_existing_root_indexes.json.result.indexes
+  with_dict: devpi_root_indexes
+
+- name: indexes | update root indexes
+  command: >
+    {{ devpi_client_bin }} index -y {{ item.key }}
+    volatile={{ item.value.volatile }}
+    bases={{ item.value.bases | join(',') }}
+    pypi_whitelist='{{ item.value.pypi_whitelist | default('*') }}'
+    --clientdir {{ devpi_client_dir }}
+  when: item.key in devpi_existing_root_indexes.json.result.indexes
+  changed_when: False
+  with_dict: devpi_root_indexes

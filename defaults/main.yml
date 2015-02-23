@@ -1,0 +1,49 @@
+---
+# defaults file for chatid.devpi
+devpi_user: devpi
+devpi_docker_image: mattupstate/devpi-web
+devpi_python_package: devpi-web
+devpi_cidfile: /var/run/devpi.cid
+devpi_service_name: devpi
+devpi_port: 3141
+devpi_server_install_method: docker
+
+devpi_server: false
+devpi_server_docker: true
+devpi_server_package: devpi-web
+devpi_server_version: 2.2.2
+devpi_server_virtualenv: /usr/src/devpi-server
+devpi_server_bin: "{{ devpi_server_virtualenv }}/bin/devpi-server"
+devpi_server_dir: /var/lib/devpi-server
+devpi_server_log_dir: /var/log/devpi
+devpi_server_host: 0.0.0.0
+devpi_server_replica: false
+# devpi_master_uri: None
+
+devpi_client: true
+devpi_client_package: devpi-client
+devpi_client_version: 2.0.4
+devpi_client_virtualenv: /usr/src/devpi-client
+devpi_client_bin: "{{ devpi_client_virtualenv }}/bin/devpi"
+devpi_client_dir: /var/lib/devpi-client
+
+# devpi_root_password: None
+devpi_root_indexes: {}
+devpi_users: {}
+
+devpi_proxy: false
+devpi_proxy_host: "pypi.*"
+devpi_proxy_port: 80
+devpi_proxy_user: www-data
+devpi_proxy_ssl: false
+devpi_proxy_ssl_port: 443
+devpi_proxy_ssl_cert_src: None
+devpi_proxy_ssl_cert_dest: "{{ devpi_server_dir }}/devpi.crt"
+devpi_proxy_ssl_key_src: None
+devpi_proxy_ssl_key_dest: "{{ devpi_server_dir }}/devpi.key"
+devpi_proxy_error_log: /var/log/nginx/devpi.error
+devpi_proxy_access_log: /var/log/nginx/devpi.access
+devpi_proxy_consul_conf_dest: "{{ consul_template_config_dir }}/devpi-nginx.hcl"
+devpi_proxy_consul_template_src: "{{ consul_template_templates_dir }}/devpi-nginx.ctmpl"
+devpi_proxy_consul_template_dest: /etc/nginx/sites-enabled/devpi.conf
+devpi_proxy_consul_aware: no

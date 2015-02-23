@@ -1,0 +1,7 @@
+---
+# handlers file for chatid.devpi
+- name: restart devpi
+  service: name=devpi state=restarted
+
+- name: restart devpi-nginx-config
+  service: name=devpi-nginx-config state=restarted

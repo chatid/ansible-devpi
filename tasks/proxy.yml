@@ -1,0 +1,26 @@
+---
+- name: proxy | copy SSL cert and key
+  copy: >
+    src={{ item.src }} dest={{ item.dest }}
+    owner=root group={{ devpi_proxy_user }} mode=640
+  when: devpi_proxy_ssl | bool
+  with_items:
+    - src: "{{ devpi_proxy_ssl_cert_src }}"
+      dest: "{{ devpi_proxy_ssl_cert_dest }}"
+    - src: "{{ devpi_proxy_ssl_key_src }}"
+      dest: "{{ devpi_proxy_ssl_key_dest }}"
+
+- name: proxy | copy consul-template config
+  template: src={{ item.src }} dest={{ item.dest }}
+  notify: restart consul-template
+  when: devpi_proxy_consul_aware | bool
+  with_items:
+    - src: devpi-nginx.hcl
+      dest: "{{ devpi_proxy_consul_conf_dest }}"
+    - src: devpi-nginx.ctmpl
+      dest: "{{ devpi_proxy_consul_template_src }}"
+
+- name: proxy | render nginx config
+  template: src=devpi-nginx.ctmpl dest=/etc/nginx/sites-enabled/devpi
+  notify: reload nginx
+  when: not devpi_proxy_consul_aware | bool

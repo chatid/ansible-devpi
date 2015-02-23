@@ -1,0 +1,31 @@
+---
+# Plain old install
+- hosts: python
+  sudo: true
+
+  roles:
+    - role: chatid.devpi
+      devpi_server_install_method: python
+      devpi_server_secret: no-so-secret
+      devpi_server: true
+      devpi_proxy: true
+      devpi_root_password: password
+
+# Docker & Consul aware
+- hosts: docker
+  sudo: true
+
+  vars:
+    consul_server: true
+    consul_bootstrap_expect: 1
+    consul_template_syslog: false
+    consul_template_log_level: debug
+
+  roles:
+    - role: chatid.devpi
+      devpi_server_consul_aware: yes
+      devpi_server_install_method: docker
+      devpi_server_secret: no-so-secret
+      devpi_server: true
+      devpi_proxy: true
+      devpi_root_password: password

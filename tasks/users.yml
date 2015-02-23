@@ -1,0 +1,47 @@
+---
+- name: users | set devpi client index
+  command: >
+    {{ devpi_client_bin }} use http://0.0.0.0:{{ devpi_port }} --clientdir {{ devpi_client_dir }}
+  changed_when: False
+
+- name: users | login as root without a password
+  command: >
+    {{ devpi_client_bin }} login root --password= --clientdir {{ devpi_client_dir }}
+  ignore_errors: true
+  changed_when: False
+  register: devpi_login
+
+- name: users | set the root user password
+  command: >
+    {{ devpi_client_bin }} user -m root password={{ devpi_root_password }} --clientdir {{ devpi_client_dir }}
+  when: devpi_login.rc == 0
+
+- name: users | login as root with a password
+  command: >
+    {{ devpi_client_bin }} login root --password={{ devpi_root_password }} --clientdir {{ devpi_client_dir }}
+  changed_when: False
+  when: devpi_login.rc != 0
+
+- name: users | get devpi users
+  command: >
+    {{ devpi_client_bin }} user -l --clientdir {{ devpi_client_dir }}
+  register: devpi_existing_users
+  changed_when: False
+
+- name: users | delete users
+  command: >
+    {{ devpi_client_bin }} user --delete {{ item }} --clientdir {{ devpi_client_dir }}
+  when: item not in devpi_users and item != 'root'
+  with_items: devpi_existing_users.stdout_lines
+
+- name: users | modify devpi users
+  command: >
+    {{ devpi_client_bin }} user -m {{ item.key }} email={{ item.value.email }} password={{ item.value.password }}
+  when: item.key in devpi_existing_users.stdout_lines
+  with_dict: devpi_users
+
+- name: users | create devpi users
+  command: >
+    {{ devpi_client_bin }} user -c {{ item.key }} email={{ item.value.email }} password={{ item.value.password }} --clientdir {{ devpi_client_dir }}
+  when: item.key not in devpi_existing_users.stdout_lines
+  with_dict: devpi_users
