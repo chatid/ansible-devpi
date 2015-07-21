@@ -12,20 +12,20 @@
 
 - name: server | docker | inspect container
   command: docker inspect {{ cat_result.stdout.strip() }}
-  register: docker_inspect_result
+  register: inspect_result
   ignore_errors: yes
   changed_when: False
   when: cat_result.rc == 0
 
-# If the port is pinned, we need to stop the previous contianer
-- name: server | docker | stop previous container
-  shell: docker {{ item }} {{ cat_result.stdout.strip() }}
-  with_items: [stop, rm]
-  when: devpi_port != '' and docker_inspect_result is defined and docker_inspect_result.rc == 0
+- name: server | docker | remove cidfile
+  file: path={{ devpi_cidfile }} state=absent
+  when: >
+    cat_result.rc > 0  or
+    (inspect_result.rc == 0 and inspect_result.stdout.find('"Running": false') > -1)
 
 - name: server | docker | run container
   shell: >
-    rm -f {{ devpi_cidfile }} & docker run -d
+    docker run -d
     -p {{ devpi_port }}:3141
     --cidfile={{ devpi_cidfile }}
     -e SERVICE_NAME={{ devpi_service_name }}
@@ -41,10 +41,8 @@
     --master {{ devpi_master_uri }}
     {% endif %}
   when: >
-    docker_pull_result.changed or
-    docker_inspect_result is not defined or
-    (docker_inspect_result is defined and docker_inspect_result.rc != 0) or
-    (docker_inspect_result is defined and '"Running": false' in docker_inspect_result.stdout)
+    cat_result.rc > 0 or
+    (inspect_result.rc == 0 and inspect_result.stdout.find('"Running": false') > -1)
   register: docker_run_result
 
 - name: server | docker | get container port
