@@ -2,7 +2,7 @@
 {% raw %}
 upstream devpi {
     {{ range service "master.{% endraw %}{{ devpi_service_name }}{% raw %}" }}server {{ .Address }}:{{ .Port }};
-    {{end}}
+    {{ else }}server 127.0.0.1:{% endraw %}{{ devpi_port }}{% raw %};{{ end }}
 }
 {% endraw %}
 {% else %}
