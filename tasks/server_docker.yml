@@ -20,7 +20,7 @@
 - name: server | docker | remove cidfile
   file: path={{ devpi_cidfile }} state=absent
   when: >
-    cat_result.rc > 0  or
+    cat_result.rc == 0  and
     (inspect_result.rc == 0 and inspect_result.stdout.find('"Running": false') > -1)
 
 - name: server | docker | run container
@@ -53,11 +53,6 @@
 - name: server | docker | set new port fact
   set_fact: { devpi_port: "{{ docker_port_result.stdout.split(':')[1] }}" }
   when: docker_port_result is defined and docker_port_result.rc == 0
-
-- name: server | docker | stop previous devpi container
-  shell: docker {{ item }} {{ cat_result.stdout.strip() }}
-  with_items: [stop, rm]
-  when: devpi_port == '' and docker_inspect_result is defined and docker_inspect_result.rc == 0
 
 - name: server | docker | wait for server to come up
   wait_for: host=0.0.0.0 port={{ devpi_port }}
